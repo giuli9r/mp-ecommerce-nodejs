@@ -1,22 +1,45 @@
-var express = require('express');
-var exphbs  = require('express-handlebars');
-var port = process.env.PORT || 3000
+var express = require("express");   
 
-var app = express();
- 
-app.engine('handlebars', exphbs());
-app.set('view engine', 'handlebars');
+var exphbs = require("express-handlebars"); // compiles templates into JavaScript functions
 
-app.use(express.static('assets'));
- 
-app.use('/assets', express.static(__dirname + '/assets'));
+var app = express();  // Creacion de rutas
+// var api = express.Router();
 
-app.get('/', function (req, res) {
-    res.render('home');
+const PaymentController = require("./controllers/PaymentController");
+const PaymentService = require("./services/PaymentService");
+const PaymentInstance = new PaymentController(new PaymentService());
+
+app.engine("handlebars", exphbs());
+app.set("view engine", "handlebars");
+
+app.get("/", (req, res) => {
+  res.render("home");
 });
 
-app.get('/detail', function (req, res) {
-    res.render('detail', req.query);
+app.get("/detail", (req, res) => {
+  res.render("detail", req.query);
 });
 
-app.listen(port);
+app.get("/success", (req, res) => {
+  res.render("success", req.query);
+});
+
+app.get("/error", (req, res) => {
+  res.render("error");
+});
+
+app.get("/pending", (req, res) => {
+  res.render("pending");
+});
+
+app.post("/payment/new", (req, res) =>
+  PaymentInstance.getMercadoPagoLink(req, res)
+);
+
+app.post("/webhook", (req, res) => PaymentInstance.webhook(req, res));
+
+app.use(express.static("assets"));
+
+app.use("/assets", express.static(__dirname + "/assets"));
+
+app.listen(process.env.PORT || 3000);
